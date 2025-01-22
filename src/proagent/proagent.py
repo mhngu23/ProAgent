@@ -37,9 +37,12 @@ class ProAgent(object):
 		self.key_rotation = True
 
 	def load_openai_keys(self):
-		with open(openai_key_file, "r") as f:
-			context = f.read()
-		self.openai_api_keys = context.split('\n')
+		try:
+			with open(openai_key_file, "r") as f:
+				context = f.read()
+			self.openai_api_keys = context.split('\n')
+		except FileNotFoundError:
+			pass
 
 	def openai_api_key(self):
 		if self.key_rotation:
@@ -120,7 +123,13 @@ class ProMediumLevelAgent(ProAgent):
 			model_name = "gpt"
 		elif "claude" in self.model:
 			model_name = "claude"
-	
+		elif "meta-llama" in self.model:
+			# model_name = "meta-llama"
+			model_name = "gpt"
+
+		print("Prompt_dir", PROMPT_DIR)
+		# exit()
+
 		if module_name == "planner":
 			prompt_file = os.path.join(PROMPT_DIR, model_name, module_name, self.prompt_level, f'{self.layout}_{self.agent_index}.{file_type}')
 		elif module_name == "explainer":
@@ -128,7 +137,8 @@ class ProMediumLevelAgent(ProAgent):
 		else:
 			raise Exception(f"Module {module_name} not supported.")
 
-		# print(prompt_file)
+		# Example: "/home/s223669184/ProAgent/src/prompts/gpt/planner/l2-ap/cramped_room_1.txt"
+		print("Prompt_file", prompt_file)
 		with open(prompt_file, "r") as f:
 			if file_type == 'json':
 				messages = json.load(f)
@@ -292,7 +302,7 @@ class ProMediumLevelAgent(ProAgent):
 	##################
 
 	def action(self, state):
-
+		
 		start_pos_and_or = state.players_pos_and_or[self.agent_index]
 
 		# only use to record the teammate ml_action, 
@@ -499,6 +509,7 @@ class ProMediumLevelAgent(ProAgent):
 		Effectively, will return a list of all possible locations Y in which the selected
 		medium level action X can be performed.
 		"""
+		# If belief revision is enabled, generate a belief prompt
 		if self.prompt_level == "l3-aip" and self.belief_revision:
 			belief_prompt = self.generate_belief_prompt()
 		else:
@@ -510,7 +521,8 @@ class ProMediumLevelAgent(ProAgent):
 
 		state_message = {"role": "user", "content": state_prompt}
 		self.planner.current_user_message = state_message
-		response = self.planner.query(key=self.openai_api_key(), stop='Scene', trace = self.trace)
+		# response = self.planner.query(key=self.openai_api_key(), stop='Scene', trace = self.trace)
+		response = self.planner.query(stop='Scene', trace = self.trace)
 		
 		if 'wait' not in response:
 			self.planner.add_msg_to_dialog_history(state_message) 
@@ -524,7 +536,9 @@ class ProMediumLevelAgent(ProAgent):
 		print("\n===== Parser =====\n")
 		## specific for prompt need intention
 		if self.prompt_level == "l3-aip":
+			# Generated the intention for the teammate: 1 - self.agent_index -> 2 agents then will give the other one index
 			generated_intention = self.parse_ml_action(response, 1-self.agent_index)
+			# Add the new predicted intention to the teammate_intentions_dict
 			self.teammate_intentions_dict[str(self.current_timestep)] = generated_intention
 			print(f"Intention for Player {1 - self.agent_index}: {generated_intention}")  
 			# if str(self.current_timestep) in self.teammate_intentions_dict:   
@@ -765,7 +779,7 @@ class ProMediumLevelAgent(ProAgent):
 		Chooses motion goal that has the lowest cost action plan.
 		Returns the motion goal itself and the first action on the plan.
 		"""
-		min_cost = np.Inf
+		min_cost = np.inf
 		best_action, best_goal = None, None
 		for goal in motion_goals:
 			action_plan, _, plan_cost = self.mlam.motion_planner.get_plan(
@@ -783,7 +797,7 @@ class ProMediumLevelAgent(ProAgent):
 		Chooses motion goal that has the lowest cost action plan.
 		Returns the motion goal itself and the first action on the plan.
 		"""   
-		min_cost = np.Inf
+		min_cost = np.inf
 		best_action, best_goal = None, None
 		for goal in motion_goals:   
 			action_plan, plan_cost = self.real_time_planner(

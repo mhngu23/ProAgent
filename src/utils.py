@@ -16,7 +16,6 @@ from overcooked_ai_py.utils import load_dict_from_file, load_pickle
 from proagent.proagent import ProMediumLevelAgent
 
 from collections import defaultdict
-from stable_baselines import GAIL
 
 
 BC_SAVE_DIR = "../models/bc_runs/"
@@ -72,6 +71,9 @@ def make_agent(alg:str, mdp, layout, **gptargs):
 
         elif alg == "Greedy":
             mlam = MediumLevelPlanner.from_pickle_or_compute(mdp, MLAM_PARAMS, force_compute=True)
+            # print("mdp", mdp)
+            # print("MLAM_PARAMS", MLAM_PARAMS)
+            # exit()
             agent = GreedyHumanModel(mlam)      
 
     elif alg in ['COLE', 'FCP', 'MEP', 'PBT', 'SP']:

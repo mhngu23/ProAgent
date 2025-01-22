@@ -46,6 +46,7 @@ class AgentGroup(object):
             assert allow_duplicate_agents, "All agents should be separate instances, unless allow_duplicate_agents is set to true"
 
     def joint_action(self, state):
+        # Agent.action return action for the agent  
         return tuple(a.action(state) for a in self.agents)
 
     def set_mdp(self, mdp):
@@ -390,7 +391,7 @@ class GreedyHumanModel(Agent):
 
     def get_lowest_cost_action_and_goal(self, start_pos_and_or, motion_goals):
         """Returns action and goal that correspond to the cheapest plan among possible motion goals"""
-        min_cost = np.Inf
+        min_cost = np.inf
         best_action, best_goal = None, None
         for goal in motion_goals:
             action_plan, _, plan_cost = self.mlp.mp.get_plan(start_pos_and_or, goal)
@@ -405,7 +406,7 @@ class GreedyHumanModel(Agent):
             Chooses motion goal that has the lowest cost action plan.
             Returns the motion goal itself and the first action on the plan.
         """   
-        min_cost = np.Inf
+        min_cost = np.inf
         best_action, best_goal = None, None
         for goal in motion_goals:   
             """

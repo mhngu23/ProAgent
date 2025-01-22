@@ -2,7 +2,7 @@ import random
 import time
 
 import numpy as np
-import openai
+# import openai
 
 
 from overcooked_ai_py.mdp.actions import Action, Direction
@@ -73,32 +73,32 @@ def gpt_state_list(mdp, state):
     return grid_list
 
 
-def retry_with_exponential_backoff(
-        func,
-        initial_delay: float = 1,
-        exponential_base: float = 2,
-        jitter: bool = True,
-        max_retries: int = 10,
-        errors: tuple = (openai.error.RateLimitError,),
-):
+# def retry_with_exponential_backoff(
+#         func,
+#         initial_delay: float = 1,
+#         exponential_base: float = 2,
+#         jitter: bool = True,
+#         max_retries: int = 10,
+#         errors: tuple = (openai.error.RateLimitError,),
+# ):
 
-    def wrapper(*args, **kwargs):
-        num_retries = 0
-        delay = initial_delay
-        while True:
-            try:
-                return func(*args, **kwargs)
+#     def wrapper(*args, **kwargs):
+#         num_retries = 0
+#         delay = initial_delay
+#         while True:
+#             try:
+#                 return func(*args, **kwargs)
 
-            except errors as e:
-                print(e)
-                num_retries += 1
-                if num_retries > max_retries:
-                    raise Exception(
-                        f"Maximum number of retries ({max_retries}) exceeded."
-                    )
-                delay *= exponential_base * (1 + jitter * random.random())
-                time.sleep(delay)
-            except Exception as e:
-                raise e
+#             except errors as e:
+#                 print(e)
+#                 num_retries += 1
+#                 if num_retries > max_retries:
+#                     raise Exception(
+#                         f"Maximum number of retries ({max_retries}) exceeded."
+#                     )
+#                 delay *= exponential_base * (1 + jitter * random.random())
+#                 time.sleep(delay)
+#             except Exception as e:
+#                 raise e
 
-    return wrapper
+#     return wrapper

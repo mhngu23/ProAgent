@@ -9,6 +9,8 @@ from rich import print as rprint
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1" 
+os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -16,7 +18,7 @@ warnings.filterwarnings("ignore", message=".*cuBLAS factory.*") # ignore "Unable
 
 
 from distutils.util import strtobool
-def boolean_argument(value):
+def bool_argument(value):
     """Convert a string value to boolean."""
     return bool(strtobool(value))
 
@@ -94,12 +96,18 @@ def main(variant):
                 s_t = env.state
                 # print(s_t.timestep, env.t)
                 print(f'\n>>>>>>>>>>>>>time: {t}<<<<<<<<<<<<<<<<<<<<<\n')
-                print(env.mdp.state_string(s_t).replace('ø', 'o'))   
+                print("s_t", s_t)
+                # Convert the state to a maze string for readability
+                print("Env_state_string: \n", env.mdp.state_string(s_t).replace('ø', 'o'))   
 
+                # if t == 2:
+                #     exit()
                 a_t = team.joint_action(s_t) 
-                print(f"\n-----------Controller-----------\n")    
+                print(f"\n-----------Controller-----------\n")   
+                print("a_t", a_t) 
                 print(f"action: P0 {Action.to_char(a_t[0])} | P1 {Action.to_char(a_t[1])}")
 
+                # exit()
                 obs, reward, done, env_info = env.step(a_t)
 
                 ml_actions = obs.ml_actions
@@ -182,17 +190,17 @@ if __name__ == '__main__':
     parser.add_argument('--episode', type=int, default=1, help='Number of episodes')
 
     # these parsers are only required when using ProAgent.
-    parser.add_argument('--gpt_model', type=str, default='gpt-3.5-turbo-0301', choices=['text-davinci-003', 'gpt-3.5-turbo-16k', 'gpt-3.5-turbo-0301', 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-0314'], help='Number of episodes')
+    parser.add_argument('--gpt_model', type=str, default='meta-llama/Llama-2-7b-chat-hf', choices=['text-davinci-003', 'gpt-3.5-turbo-16k', 'gpt-3.5-turbo-0301', 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-0314', "meta-llama/Llama-2-7b-chat-hf", "meta-llama/Llama-2-13b-chat-hf, meta-llama/Llama-2-70b-chat-hf"], help='Number of episodes')
     parser.add_argument('--prompt_level', '-pl', type=str, default='l2-ap', choices=['l1-p', 'l2-ap', 'l3-aip'], help="'l1-p': make plans directly without CoT; 'l2-ap': plans with analysis; 'l3-aip': plans with analysis and intention.")
-    parser.add_argument('--belief_revision', '-br', type=boolean_argument, default=False, help='whether we use belief_revision or not')
+    parser.add_argument('--belief_revision', '-br', type=bool, default=False, help='whether we use belief_revision or not')
     parser.add_argument('--retrival_method', type=str, default="recent_k", choices=['recent_k', 'bert_topk'], help='Use similarity-based(BERT, CLIP) retrieval or retrieve recent K history in dialog.')
     parser.add_argument('--K', type=int, default=1, help="The number of dialogues you want to retrieve.")
 
     # 
     parser.add_argument('--mode', type=str, default='exp', choices=['exp', 'demo'], help='exp mode run step-by-step, demo mode run via traj')                                
-    parser.add_argument('--save', type=boolean_argument, default=True, help='Whether save the result')
+    parser.add_argument('--save', type=bool, default=True, help='Whether save the result')
     parser.add_argument('--log_dir', type=str, default=None, help='dir to save result')
-    parser.add_argument('--debug', type=boolean_argument, default=True, help='debug mode')
+    parser.add_argument('--debug', type=bool, default=True, help='debug mode')
 
 
     args = parser.parse_args()
